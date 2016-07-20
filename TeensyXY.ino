@@ -245,7 +245,7 @@ double Yaccel;
     } else {
       digitalWrite(YaxisDir,FORWARD);
     }      
-    analogWrite(XYaxisPWM,abs(axis[1].vpid.spd)); // Apply PID PWM speed to motor
+    analogWrite(YaxisPWM,abs(axis[1].vpid.spd)); // Apply PID PWM speed to motor
 
    
 } 
