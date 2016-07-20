@@ -1,5 +1,5 @@
 /**********************************************************************************************
-* xyTeensy_v2.ino   07-20-2016   unix_guru at hotmail.com   @unix_guru on twitter
+*  TeensyXY.ino    unix_guru at hotmail.com   @unix_guru on twitter
 *  http://arduino-pi.blogspot.com
 *
 *  This sketch allows you to run two salvaged printer carriages for X/Y axis using their 
@@ -18,7 +18,10 @@
 *
 * Thank you Trudy.
 *
-*
+* Also thanks to Miguel Sanchez for helping me through some of the PID issues 
+* and validating that this was a project worth doing.  Check out Miguel's Arduino DCServo work
+* https://github.com/misan
+* 
 ************************************************************************************************/
 
 #include <EEPROMex.h>
@@ -113,10 +116,11 @@ struct VELPIDSTRUCT {                         // Velocity PID structure
 
 
 struct AXISSTRUCT {                           // Structure to manage axis variables  
-  POSPIDSTRUCT ppid = { 0, 0, 0, 0, 0, 0 };   // Initialize Position PID
-  VELPIDSTRUCT vpid = { 0, 0, 0, 0, 0, 0 };   // Initialize Velocity PID
+  POSPIDSTRUCT ppid = { 3, 0, 0.0, 0, 0, 0 };   // Initialize Position PID
+  VELPIDSTRUCT vpid = { 10, 0, 0.0, 0, 0, 0 };   // Initialize Velocity PID
   int maxPWM = 255;                           // Maximum PWM for motor drive
   int maxVEL = 1000;                          // Maximum Velocity in encoder ticks/s 
+  int maxACC = 5000;                          // Maximum Acceleration in encoder ticks/s/s
 } axis[2];                                    // Instantiate two axis
 
 // Instantiate X and Y axis PID controls
@@ -202,10 +206,17 @@ void updatePID(void){
 double XaxisOldPos = axis[0].ppid.pos;                // Previous X position
 double YaxisOldPos = axis[1].ppid.pos;                // Previous Y position
 
+double XaxisOldVel = axis[0].vpid.vel;                // Previous X velocity
+double YaxisOldVel = axis[1].vpid.vel;                // Previous Y velocity
+double Xaccel;
+double Yaccel;
+
     axis[0].ppid.pos = xPosn.calcPosn();              // Get current Xaxis position in encoder ticks  
                                                       // velocity = abs of distance travelled per second       
-    axis[0].vpid.vel =  abs(XaxisOldPos-axis[0].ppid.pos) / (PID_UPDATE_TIME/1000); 
-
+    axis[0].vpid.vel =  abs(XaxisOldPos-axis[0].ppid.pos) / (PID_UPDATE_TIME *1000); 
+                                                      // acceleration = abs change in velocity per second
+    Xaccel = abs(XaxisOldVel-axis[0].vpid.vel) / (PID_UPDATE_TIME *1000);
+    
     xpPID.Compute();                              // Run PID assessment of current position vs target position
     axis[0].vpid.vel = axis[0].ppid.vel;          // Feed velocity PID if position need correcting                // Can we remove this step, and combine in the STRUCTURE?
     xvPID.Compute();                              // Run PID assessment of current Xaxis Velocity
@@ -220,18 +231,21 @@ double YaxisOldPos = axis[1].ppid.pos;                // Previous Y position
   
     axis[1].ppid.pos = yPosn.calcPosn();              // Get current Yaxis position in encoder ticks  
                                                       // velocity = abs of distance travelled per second       
-    axis[1].vpid.vel =  abs(YaxisOldPos-axis[1].ppid.pos) / (PID_UPDATE_TIME/1000); 
+    axis[1].vpid.vel =  abs(YaxisOldPos-axis[1].ppid.pos) / (PID_UPDATE_TIME*1000); 
 
+                                                     // acceleration = abs change in velocity per second
+    Yaccel = abs(YaxisOldVel-axis[1].vpid.vel) / (PID_UPDATE_TIME *1000);
+    
     ypPID.Compute();                              // Run PID assessment of current position vs target position
     axis[1].vpid.vel = axis[1].ppid.vel;          // Feed velocity PID if position need correcting                // Can we remove this step, and combine in the STRUCTURE?
     yvPID.Compute();                              // Run PID assessment of current Yaxis Velocity
 
     if(axis[1].vpid.vel < 0) {                    // Determine direction of travel
-      digitalWrite(XaxisDir,BACKWARD);  
+      digitalWrite(YaxisDir,BACKWARD);  
     } else {
-      digitalWrite(XaxisDir,FORWARD);
+      digitalWrite(YaxisDir,FORWARD);
     }      
-    analogWrite(XaxisPWM,abs(axis[1].vpid.spd)); // Apply PID PWM speed to motor
+    analogWrite(XYaxisPWM,abs(axis[1].vpid.spd)); // Apply PID PWM speed to motor
 
    
 } 
