@@ -27,64 +27,30 @@
 // Thanks to Scott Penrose for the following http://linux.dd.com.au/wiki/Teensy_EEPROM_Logger
 
 
-struct CONFIG {
-  byte mode;
-  int displayBright;    // -255 .. 255 (negative = inverse)
-  unsigned long test;
-  unsigned long logloc;
-  unsigned int displayInterval; // How often to update display params?
-  unsigned int environmentReadInterval; // Read Temperature / Humidity
-  unsigned int environmentLogInterval;  // Log / Display temperature / humidity
-};
-CONFIG config = { 0, 0, 0, 0, 0, 0, 0 };  // You can set defaults...
 
 #define LOG_START 50      // Start EEPROM
 #define LOG_SIZE 1900     // Size (bytes) allowed (max log size)
 
-struct LOGSTRUCT {
-  unsigned int datetime;    // TODO time_t ?
-  unsigned int lat;
-  unsigned int lng;
-  byte status;
-};
-LOGSTRUCT logdata = { 0, 0, 0, 0 };
 
-
-void setup_logs() {
-  // Read last log
-  readLog(3);
-  Serial.print("Log at position 3 = ");
-  Serial.println(logdata.datetime);
-
-  // Write new log
-  logdata.datetime = millis();                            
-  logdata.lat = logdata.lat++;
-  logdata.lng = logdata.lng++;
-  logdata.status = logdata.status++;
-  writeLog();
-}
-
-
-
-void writeLog() {
-  config.logloc++;   // You need to store config somewhere too
-  if ( config.logloc > ( LOG_SIZE / sizeof(LOGSTRUCT) ) ) {
-    config.logloc = 0;
-  }
-  EEPROM.writeBlock( LOG_START + (config.logloc * sizeof(LOGSTRUCT)), logdata);
-  writeConfig();
-}
-
-void readLog(byte loc) {
-  EEPROM.readBlock( LOG_START + (loc * sizeof(LOGSTRUCT)), logdata );
-}
 
 void readConfig() {
-  EEPROM.readBlock( 0, config );
+  int ConfigLoc=0;
+  time_t configTime;
+  EEPROM.readBlock( 0, configTime );
+  ConfigLoc += sizeof(timeNow);
+  EEPROM.readBlock(ConfigLoc, axis[0]); 
+  ConfigLoc += sizeof(axis[0]);
+  EEPROM.readBlock(ConfigLoc, axis[1]); 
 }
 
 void writeConfig() {
-  EEPROM.writeBlock( 0, config );
+  int ConfigLoc=0;
+  time_t timeNow = now();
+  EEPROM.writeBlock(ConfigLoc, timeNow );
+  ConfigLoc += sizeof(timeNow);
+  EEPROM.writeBlock(ConfigLoc, axis[0]); 
+  ConfigLoc += sizeof(axis[0]);
+  EEPROM.writeBlock(ConfigLoc, axis[1]); 
 }
 
 
