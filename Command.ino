@@ -345,12 +345,15 @@ void process_commands()
       if(Stopped == false) {
         get_coordinates(); // For X Y Z E
 
-
         prepare_move();
         ClearToSend();
         return;
       }
       break; 
+    case 28: // G28       Home all axis
+            axis[0].ppid.tpos = 0;
+            axis[1].ppid.tpos = 0;  
+      break;
     case 90: // G90
       relative_mode = false;    
       break;
@@ -367,6 +370,26 @@ void process_commands()
       }   
     break;     
       
+    case 150: // G150   Co-Opting to Set Position PID
+      for(int8_t i=0; i < NUM_AXIS; i++) {
+        if(code_seen(axis_codes[i])) {        // Select which Axis to update
+          axis[i].ppid.Kp = code_value();
+          axis[i].ppid.Ki = code_value();
+          axis[i].ppid.Kd = code_value();
+        }  
+      }   
+      break;     
+      
+    case 151: // G151   Co-Opting to Set Velocity PID
+      for(int8_t i=0; i < NUM_AXIS; i++) {
+        if(code_seen(axis_codes[i])) {        // Select which Axis to update
+          axis[i].vpid.Kp = code_value();
+          axis[i].vpid.Ki = code_value();
+          axis[i].vpid.Kd = code_value();
+        } 
+      }    
+      break;     
+      
       
     };
    }
@@ -382,13 +405,21 @@ void process_commands()
                 Serial.printf("Not supported");
            break;
           case 115: // M115
-                Serial.printf("FIRMWARE_NAME: FRDM-K64F V1; Sprinter/grbl mashup  ");
+                Serial.printf("FIRMWARE_NAME: TeensyXY V1; DC ServoMotor CTRL  ");
                 Serial.printf("FIRMWARE_URL: %s PROTOCOL_VERSION: %s  MACHINE_TYPE: %s ", FIRMWARE_URL, PROTOCOL_VERSION, MACHINE_NAME );
                 Serial.printf("EXTRUDER_COUNT: 1 UUID: %s \r\n", MACHINE_UUID);
 
           break; 
-          
-         }
+
+          case 500 : // M500   Save parameters to EEPROM
+                writeConfig();
+                Serial.printf("Parameters written to EEPROM");
+           break;          
+          case 501 : // M501   Read parameters from EEPROM
+                readConfig();
+                Serial.printf("Parameters updated from EEPROM");
+           break;
+        }
     }   
      else
         {
@@ -420,8 +451,11 @@ void prepare_move(void) {
 }
 
 void plan_set_position(double X, double Y){
+            axis[0].ppid.tpos = X;
+            axis[1].ppid.tpos = Y;            
   
 }
+
 void kill(void){
   
 }
