@@ -24,22 +24,25 @@
 * 
 ************************************************************************************************/
 
-
 void updateDisplay() {            // update Serial output
 
    // For diagnostic  comment out later
+    Serial.println("X: TPos, CPos, Velocity, PKp, Pki, Pkd "); 
     Serial.print("X, "); Serial.print(axis[0].ppid.tpos);Serial.print(", "); Serial.print(axis[0].ppid.pos);Serial.print(", "); Serial.print(axis[0].ppid.vel);
     Serial.print(", "); Serial.print(axis[0].ppid.Kp); Serial.print(", "); Serial.print(axis[0].ppid.Kp); Serial.print(", "); Serial.println(axis[0].ppid.Kp);
+    Serial.println("X: TVel, CVel, PWM, VKp, Vki, Vkd ");     
     Serial.print("X, "); Serial.print(axis[0].vpid.tvel);Serial.print(", "); Serial.print(axis[0].vpid.vel);Serial.print(", "); Serial.print(axis[0].vpid.spd);
     Serial.print(", "); Serial.print(axis[0].vpid.Kp); Serial.print(", "); Serial.print(axis[0].vpid.Kp); Serial.print(", "); Serial.println(axis[0].vpid.Kp);
 
     Serial.println();
     
-    Serial.print("X, "); Serial.print(axis[1].ppid.tpos);Serial.print(", "); Serial.print(axis[1].ppid.pos);Serial.print(", "); Serial.print(axis[1].ppid.vel);
+    Serial.println("Y: TPos, CPos, Velocity, PKp, Pki, Pkd "); 
+    Serial.print("Y, "); Serial.print(axis[1].ppid.tpos);Serial.print(", "); Serial.print(axis[1].ppid.pos);Serial.print(", "); Serial.print(axis[1].ppid.vel);
     Serial.print(", "); Serial.print(axis[1].ppid.Kp); Serial.print(", "); Serial.print(axis[1].ppid.Kp); Serial.print(", "); Serial.println(axis[1].ppid.Kp);
-    Serial.print("X, "); Serial.print(axis[1].vpid.tvel);Serial.print(", "); Serial.print(axis[1].vpid.vel);Serial.print(", "); Serial.print(axis[1].vpid.spd);
+    Serial.println("X: TVel, CVel, PWM, VKp, Vki, Vkd ");     
+    Serial.print("Y, "); Serial.print(axis[1].vpid.tvel);Serial.print(", "); Serial.print(axis[1].vpid.vel);Serial.print(", "); Serial.print(axis[1].vpid.spd);
     Serial.print(", "); Serial.print(axis[1].vpid.Kp); Serial.print(", "); Serial.print(axis[1].vpid.Kp); Serial.print(", "); Serial.println(axis[1].vpid.Kp);
     
-     
+    Serial.println();     
 }
 
