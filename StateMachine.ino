@@ -32,6 +32,8 @@
 *
 */
 
+
+
 void updateState() {            // update LCD readout
 
       Serial.printf("Current State is %l\r\n",currentState);
