@@ -48,7 +48,7 @@ void updateDisplay() {            // update Serial output
 
 void dumpPerflog() {  
     Serial.printf("\r\n Log dump of most recent motion \r\n");
-    Serial.printf("\r\n Xpos, Xvel, Ypos, Yvel \r\n");
+    Serial.printf("\r\nTime, Xpos, Xvel, Ypos, Yvel \r\n");
     
   for(int i=0;i<1000;i++) {
     Serial.print(i);Serial.print(", ");
