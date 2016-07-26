@@ -37,7 +37,7 @@ void readConfig() {
   int ConfigLoc=0;
   time_t configTime;
   EEPROM.readBlock( 0, configTime );
-  ConfigLoc += sizeof(timeNow);
+  ConfigLoc += sizeof(time_t);
   EEPROM.readBlock(ConfigLoc, axis[0]); 
   ConfigLoc += sizeof(axis[0]);
   EEPROM.readBlock(ConfigLoc, axis[1]); 

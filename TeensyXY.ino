@@ -1,5 +1,6 @@
-#include <QuadDecode_def.h>
 #include <QuadDecode.h>
+#include <QuadDecode_Def.h>
+
 
 /**********************************************************************************************
 *  TeensyXY.ino    unix_guru at hotmail.com   @unix_guru on twitter
