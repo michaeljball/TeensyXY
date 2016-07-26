@@ -29,20 +29,36 @@ void updateDisplay() {            // update Serial output
    // For diagnostic  comment out later
     Serial.println("X: TPos, CPos, Velocity, PKp, Pki, Pkd "); 
     Serial.print("X, "); Serial.print(axis[0].ppid.tpos);Serial.print(", "); Serial.print(axis[0].ppid.pos);Serial.print(", "); Serial.print(axis[0].ppid.vel);
-    Serial.print(", "); Serial.print(axis[0].ppid.Kp); Serial.print(", "); Serial.print(axis[0].ppid.Kp); Serial.print(", "); Serial.println(axis[0].ppid.Kp);
-    Serial.println("X: TVel, CVel, PWM, VKp, Vki, Vkd ");     
+    Serial.print(", "); Serial.print(axis[0].ppid.Kp); Serial.print(", "); Serial.print(axis[0].ppid.Ki); Serial.print(", "); Serial.println(axis[0].ppid.Kd);
+    Serial.println("X: TVel, CVel, PWM,    VKp, Vki, Vkd ");     
     Serial.print("X, "); Serial.print(axis[0].vpid.tvel);Serial.print(", "); Serial.print(axis[0].vpid.vel);Serial.print(", "); Serial.print(axis[0].vpid.spd);
-    Serial.print(", "); Serial.print(axis[0].vpid.Kp); Serial.print(", "); Serial.print(axis[0].vpid.Kp); Serial.print(", "); Serial.println(axis[0].vpid.Kp);
+    Serial.print(", "); Serial.print(axis[0].vpid.Kp); Serial.print(", "); Serial.print(axis[0].vpid.Ki); Serial.print(", "); Serial.println(axis[0].vpid.Kd);
 
     Serial.println();
     
     Serial.println("Y: TPos, CPos, Velocity, PKp, Pki, Pkd "); 
     Serial.print("Y, "); Serial.print(axis[1].ppid.tpos);Serial.print(", "); Serial.print(axis[1].ppid.pos);Serial.print(", "); Serial.print(axis[1].ppid.vel);
-    Serial.print(", "); Serial.print(axis[1].ppid.Kp); Serial.print(", "); Serial.print(axis[1].ppid.Kp); Serial.print(", "); Serial.println(axis[1].ppid.Kp);
-    Serial.println("X: TVel, CVel, PWM, VKp, Vki, Vkd ");     
+    Serial.print(", "); Serial.print(axis[1].ppid.Kp); Serial.print(", "); Serial.print(axis[1].ppid.Ki); Serial.print(", "); Serial.println(axis[1].ppid.Kd);
+    Serial.println("Y: TVel, CVel, PWM,    VKp, Vki, Vkd ");     
     Serial.print("Y, "); Serial.print(axis[1].vpid.tvel);Serial.print(", "); Serial.print(axis[1].vpid.vel);Serial.print(", "); Serial.print(axis[1].vpid.spd);
-    Serial.print(", "); Serial.print(axis[1].vpid.Kp); Serial.print(", "); Serial.print(axis[1].vpid.Kp); Serial.print(", "); Serial.println(axis[1].vpid.Kp);
+    Serial.print(", "); Serial.print(axis[1].vpid.Kp); Serial.print(", "); Serial.print(axis[1].vpid.Ki); Serial.print(", "); Serial.println(axis[1].vpid.Kd);
     
     Serial.println();     
 }
 
+void dumpPerflog() {  
+    Serial.printf("\r\n Log dump of most recent motion \r\n");
+    Serial.printf("\r\n Xpos, Xvel, Ypos, Yvel \r\n");
+    
+  for(int i=0;i<1000;i++) {
+    Serial.print(i);Serial.print(", ");
+    Serial.print(perflog[i].Xpos);Serial.print(", "); 
+    Serial.print(perflog[i].Xvel);Serial.print(", ");
+    Serial.print(perflog[i].Ypos);Serial.print(", ");
+    Serial.println(perflog[i].Yvel); 
+        
+    perflog[i].Xpos=perflog[i].Xvel=perflog[i].Ypos=perflog[i].Yvel=0;    // Clear previous content    
+  }
+  logpos=0;
+  logging = false;
+}
