@@ -1,3 +1,6 @@
+#include <QuadDecode_def.h>
+#include <QuadDecode.h>
+
 /**********************************************************************************************
 *  TeensyXY.ino    unix_guru at hotmail.com   @unix_guru on twitter
 *  http://arduino-pi.blogspot.com
@@ -26,8 +29,8 @@
 
 #include <EEPROMex.h>
 
-#include <QuadDecode.h>
-#include <QuadDecode_Def.h>
+// #include <QuadDecode.h>
+// #include <QuadDecode_Def.h>
 
 // wire for Teensy 3.1 as per https://forum.pjrc.com/threads/21680-New-I2C-library-for-Teensy3
 #include <i2c_t3.h>  
@@ -77,7 +80,7 @@ QuadDecode<2> yPosn;                            // Motor Encoder 2 Template usin
 #define BACKWARD     1
 
 
-#define PID_UPDATE_TIME   10000                 // 10 mSec update  (100 times a second)
+#define PID_UPDATE_TIME   1000                 // 10 mSec update  (100 times a second)
 IntervalTimer pidTimer;                         // How often to update state machine
 
 
@@ -85,7 +88,7 @@ void updatePID(void);                           // PID timing loop interrupt rou
 void ParseSerialData(void);                     // Parsing Serial string for commands
 void SerialEvent2(void);                        // Manage Serial buffer 
 
-volatile int32_t rtX=0, rtY=0;	                // Realtime values of X,Y in encoder ticks
+volatile int32_t rtX=0, rtY=0;                  // Realtime values of X,Y in encoder ticks
 
 elapsedMillis doOutput;                         // Timing on printing to Serial
 
@@ -94,7 +97,7 @@ volatile bool mode = 0;                         // Random or linear test
 int linearStep = 2;                             // How far to travel between steps
 
 int maxPWM = 255;                               // Maximum value for motor PWM
-int maxVel = 1000;                              // Maximum velocity per axis in ticks/s
+int maxVel = 200;                              // Maximum velocity per axis in ticks/s
 
 struct POSPIDSTRUCT {                         // Position PID structure
   float  Kp;                                  // Proportional Gain
@@ -116,12 +119,22 @@ struct VELPIDSTRUCT {                         // Velocity PID structure
 
 
 struct AXISSTRUCT {                           // Structure to manage axis variables  
-  POSPIDSTRUCT ppid = { 3, 0, 0.0, 0, 0, 0 };   // Initialize Position PID
-  VELPIDSTRUCT vpid = { 10, 0, 0.0, 0, 0, 0 };   // Initialize Velocity PID
-  int maxPWM = 255;                           // Maximum PWM for motor drive
+  POSPIDSTRUCT ppid = { 6, 0, 0, 0, 0, 0 };   // Initialize Position PID
+  VELPIDSTRUCT vpid = { 3, 0, 0, 0, 0, 0 };   // Initialize Velocity PID
+  int maxPWM = 180;                           // Maximum PWM for motor drive
   int maxVEL = 1000;                          // Maximum Velocity in encoder ticks/s 
   int maxACC = 5000;                          // Maximum Acceleration in encoder ticks/s/s
 } axis[2];                                    // Instantiate two axis
+
+struct AXISLOG {                              // Structure to log PID performance for tuning
+  double Xpos;                                // Current X position in encoder ticks
+  double Xvel;                                // Current X velocity in ticks/second
+  double Ypos;                                // Current Y position in encoder ticks
+  double Yvel;                                // Current Y velocity in ticks/second  
+} perflog[1000];
+
+int logpos = 0;                            // Position in the motion 
+bool logging = false;                         // Not currently logging
 
 // Instantiate X and Y axis PID controls
 PID xpPID(&axis[0].ppid.pos, &axis[0].ppid.vel, &axis[0].ppid.tpos, axis[0].ppid.Kp, axis[0].ppid.Ki, axis[0].ppid.Kd, DIRECT);        // PID controller for X axis Position
@@ -183,16 +196,7 @@ void loop() {          // NOTE:  ONLY WORKING X-AXIS for this sketch
   
     if (doOutput > 500) { doOutput = 0; updateDisplay(); }
 
-
-    SerialEvent2();                             // Grab characters from Serial
-  
-  // =======================   if serial data available, process it ========================================================================
-  if (stringComplete)                   // if there's any serial available, read it:
-  {
-    ParseSerialData();                  // Parse the recieved data
-    inString = "";                      // Reset inString to empty   
-    stringComplete = false;             // Reset the system for further input of data
-  }  
+    get_buffer();                       // Look for and parse Serial Data.
 
    ram.run();                           // Monitor available memory 
 
@@ -213,9 +217,9 @@ double Yaccel;
 
     axis[0].ppid.pos = xPosn.calcPosn();              // Get current Xaxis position in encoder ticks  
                                                       // velocity = abs of distance travelled per second       
-    axis[0].vpid.vel =  abs(XaxisOldPos-axis[0].ppid.pos) / (PID_UPDATE_TIME *1000); 
+    axis[0].vpid.vel =  abs(XaxisOldPos-axis[0].ppid.pos) *10000; 
                                                       // acceleration = abs change in velocity per second
-    Xaccel = abs(XaxisOldVel-axis[0].vpid.vel) / (PID_UPDATE_TIME *1000);
+    Xaccel = abs(XaxisOldVel-axis[0].vpid.vel) * 1000;
     
     xpPID.Compute();                              // Run PID assessment of current position vs target position
     axis[0].vpid.vel = axis[0].ppid.vel;          // Feed velocity PID if position need correcting                // Can we remove this step, and combine in the STRUCTURE?
@@ -226,15 +230,15 @@ double Yaccel;
     } else {
       digitalWrite(XaxisDir,FORWARD);
     }      
-    analogWrite(XaxisPWM,abs(axis[0].vpid.spd)); // Apply PID PWM speed to motor
+    analogWrite(XaxisPWM,abs(axis[0].vpid.spd));      // Apply PID PWM speed to motor
 
   
     axis[1].ppid.pos = yPosn.calcPosn();              // Get current Yaxis position in encoder ticks  
                                                       // velocity = abs of distance travelled per second       
-    axis[1].vpid.vel =  abs(YaxisOldPos-axis[1].ppid.pos) / (PID_UPDATE_TIME*1000); 
+    axis[1].vpid.vel =  abs(YaxisOldPos-axis[1].ppid.pos) *10000; 
 
                                                      // acceleration = abs change in velocity per second
-    Yaccel = abs(YaxisOldVel-axis[1].vpid.vel) / (PID_UPDATE_TIME *1000);
+    Yaccel = abs(YaxisOldVel-axis[1].vpid.vel) *1000;
     
     ypPID.Compute();                              // Run PID assessment of current position vs target position
     axis[1].vpid.vel = axis[1].ppid.vel;          // Feed velocity PID if position need correcting                // Can we remove this step, and combine in the STRUCTURE?
@@ -247,6 +251,13 @@ double Yaccel;
     }      
     analogWrite(YaxisPWM,abs(axis[1].vpid.spd)); // Apply PID PWM speed to motor
 
+    if (logging==true && logpos < 999) {
+        logpos++;                             // Increment Position in the motion 
+        perflog[logpos].Xpos = axis[0].ppid.pos;      // Current X position in encoder ticks
+        perflog[logpos].Xvel = axis[0].ppid.vel;      // Current X velocity in ticks/second
+        perflog[logpos].Ypos = axis[1].ppid.pos;      // Current Y position in encoder ticks
+        perflog[logpos].Yvel = axis[1].ppid.vel;      // Current Y velocity in ticks/second 
+    }
    
 } 
 
