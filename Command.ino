@@ -169,6 +169,8 @@ enum AxisEnum {X_AXIS=0, Y_AXIS=1};
 float current_position[NUM_AXIS];
 float destination[NUM_AXIS];
 
+const char pid_codes[3]= {'P', 'I', 'D'};
+
 
 #define PROTOCOL_VERSION "1.0"
 #define MACHINE_NAME "PiBot 1.0"
@@ -370,26 +372,37 @@ void process_commands()
       }   
     break;     
       
-    case 150: // G150   Co-Opting to Set Position PID
+    case 150: // G150   Co-Opting to Set Position PID  P
       for(int8_t i=0; i < NUM_AXIS; i++) {
         if(code_seen(axis_codes[i])) {        // Select which Axis to update
-          axis[i].ppid.Kp = code_value();
-          axis[i].ppid.Ki = code_value();
-          axis[i].ppid.Kd = code_value();
+          if (code_seen('P')) axis[i].ppid.Kp = code_value();
+          if (code_seen('I')) axis[i].ppid.Ki = code_value();
+          if (code_seen('D')) axis[i].ppid.Kd = code_value();
+          Serial.printf("Axis %d PKp %f PKp %f PKp %f \r\n", i, axis[i].ppid.Kp,axis[i].ppid.Ki,axis[i].ppid.Kd);          
         }  
       }   
       break;     
       
-    case 151: // G151   Co-Opting to Set Velocity PID
+
+    case 160: // G150   Co-Opting to Set Position PID  P
       for(int8_t i=0; i < NUM_AXIS; i++) {
         if(code_seen(axis_codes[i])) {        // Select which Axis to update
-          axis[i].vpid.Kp = code_value();
-          axis[i].vpid.Ki = code_value();
-          axis[i].vpid.Kd = code_value();
-        } 
-      }    
+          if (code_seen('P')) axis[i].vpid.Kp = code_value();
+          if (code_seen('I')) axis[i].vpid.Ki = code_value();
+          if (code_seen('D')) axis[i].vpid.Kd = code_value();
+          Serial.printf("Axis %d PKp %f PKp %f PKp %f \r\n", i, axis[i].ppid.Kp,axis[i].ppid.Ki,axis[i].ppid.Kd);          
+        }  
+      }   
       break;     
-      
+
+    case 170: // G170   Reset Encoder Counts to Zero
+      xPosn.zeroFTM(); yPosn.zeroFTM();                 // Start Quad Decode position count   
+      Serial.printf("X/Y Axis bot reset to Zero\r\n");                     
+      break;
+
+    case 180: // G180   Dump Performance log to serial
+      dumpPerflog();
+      break;
       
     };
    }
@@ -440,8 +453,9 @@ void get_coordinates()
         if(code_seen(axis_codes[i])) {
             axis[i].ppid.tpos = (float)code_value() + (AXIS_RELATIVE_MODES[i] || relative_mode)*axis[i].ppid.pos;
             seen[i]=true;
-            Serial.printf("Destination %u = %f  \r\n", i, destination[i]);             // ******************************************* DEBUG  ***************************8
-        } else destination[i] = current_position[i]; //Are these else lines really needed?
+            logging = true;
+            Serial.printf("Destination %u = %f  \r\n", i, axis[i].ppid.tpos);             // ******************************************* DEBUG  ***************************8
+        } 
     }
 
 }
@@ -450,6 +464,9 @@ void prepare_move(void) {
   
 }
 
+
+
+
 void plan_set_position(double X, double Y){
             axis[0].ppid.tpos = X;
             axis[1].ppid.tpos = Y;            
@@ -457,6 +474,8 @@ void plan_set_position(double X, double Y){
 }
 
 void kill(void){
-  
+
+    axis[0].vpid.spd= 0;
+    axis[0].vpid.spd= 0;  
 }
 
