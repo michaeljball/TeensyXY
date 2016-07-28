@@ -63,3 +63,36 @@ void updateState() {            // update LCD readout
           break;
       }            
 }
+
+
+
+void doCross(int test_size){
+   gotoXY( test_size,  0);  
+   gotoXY(  0,  0);  
+   gotoXY(-test_size,  0);  
+   gotoXY(  0,  0);  
+   gotoXY(  0, test_size);  
+   gotoXY(  0,  0); 
+   gotoXY(  0,-test_size);
+}
+void doSquare(int test_size){
+  gotoXY( test_size,-test_size);  
+  gotoXY( test_size, test_size);  
+  gotoXY(-test_size, test_size);  
+  gotoXY(-test_size,-test_size);
+}
+void doRhombus(int test_size){
+  gotoXY(  0,-test_size);  
+  gotoXY( test_size,  0);  
+  gotoXY(  0, test_size);  
+  gotoXY(-test_size,  0); 
+  gotoXY(  0,-test_size);
+}
+void doStar(int test_size){
+  gotoXY(  test_size,test_size);  
+  gotoXY( -test_size,-test_size);  
+  gotoXY(  0, 0);  
+  gotoXY(  test_size,-test_size);  
+  gotoXY( -test_size, test_size);  
+}
+

@@ -98,7 +98,7 @@ volatile bool mode = 0;                         // Random or linear test
 int linearStep = 2;                             // How far to travel between steps
 
 int maxPWM = 255;                               // Maximum value for motor PWM
-int maxVel = 200;                              // Maximum velocity per axis in ticks/s
+int maxVel = 1000;                              // Maximum velocity per axis in ticks/s
 
 struct POSPIDSTRUCT {                         // Position PID structure
   float  Kp;                                  // Proportional Gain
@@ -134,8 +134,9 @@ struct AXISLOG {                              // Structure to log PID performanc
   double Yvel;                                // Current Y velocity in ticks/second  
 } perflog[1000];
 
-int logpos = 0;                            // Position in the motion 
+int  logpos = 0;                               // Position in the motion 
 bool logging = false;                         // Not currently logging
+bool motion = false;                          // Not currently moving
 
 // Instantiate X and Y axis PID controls
 PID xpPID(&axis[0].ppid.pos, &axis[0].ppid.vel, &axis[0].ppid.tpos, axis[0].ppid.Kp, axis[0].ppid.Ki, axis[0].ppid.Kd, DIRECT);        // PID controller for X axis Position
@@ -161,6 +162,19 @@ String inString = "";                                      // Storage for data a
 int chindex = 0;
 boolean stringComplete = false;
 
+
+// ================================== Function Declarations ================================================================================
+void updateDisplay(void);
+void dumpPerflog(void);
+void writeConfig(void);
+void readConfig(void);
+void kill(void);
+void line_to(double, double, double, double);
+void gotoXY(double, double);
+
+
+
+// ================================== Make Magic ================================================================================
 
 void setup() {
 
@@ -259,7 +273,8 @@ double Yaccel;
         perflog[logpos].Ypos = axis[1].ppid.pos;      // Current Y position in encoder ticks
         perflog[logpos].Yvel = axis[1].ppid.vel;      // Current Y velocity in ticks/second 
     }
-   
+
+   motion = false;                                    // Tell line planner it can update next position 
 } 
 
 
