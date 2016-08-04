@@ -202,12 +202,20 @@ void setup() {
   pidTimer.begin(updatePID,PID_UPDATE_TIME);    // run PID update regularly
 
   
+  pinMode(XaxisEND, INPUT); 				// set Xaxis Endstop as an input
+  attachInterrupt(XaxisEND, xEndISR, FALLING); 	// Interrupt on endstop detect  
+
+  pinMode(YaxisEND, INPUT); 				// set Yaxis Endstop as an input
+  attachInterrupt(YaxisEND, yEndISR, FALLING); 	// Interrupt on endstop detect  
+
+
   delay(1000);                                  // 1 second delay to show dislay
   randomSeed(analogRead(0));                    // Used to select random SPs for testing
 
 }
 
 void loop() {          // NOTE:  ONLY WORKING X-AXIS for this sketch
+
   
     if (doOutput > 500) { doOutput = 0; updateDisplay(); }
 
@@ -315,6 +323,22 @@ void axisSetup() {
   
    
 }
+
+// Interrupt Service Routine for XAXIS Endstop
+void xEndISR() {
+	cli();
+	axis[0].ppid.tpos = axis[0].ppid.pos;		// Lock current position as target in XPID
+	xPosn.zeroFTM();						// Set Xaxis Encoder to Zero
+	sei();
+}
+
+void yEndISR() {
+	cli();
+	axis[1].ppid.tpos = axis[1].ppid.pos;		// Lock current position as target in YPID
+	yPosn.zeroFTM();						// Set Yaxis Encoder to Zero
+	sei();
+}
+
 
 
 
