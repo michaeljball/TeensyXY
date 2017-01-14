@@ -81,21 +81,21 @@ int deltaPos = 0;
 double timeInterval;                                     // Time interval for calculationg velocity.
 double curVelocity;                                      // Current instantaneous velocity
 
-    axis[WhichAxis].ppid.pos = 0;                         // Set current position artificially to Zero.
+    axis[whichAxis].ppid.pos = 0;                         // Set current position artificially to Zero.
                                                           // Set up X axis limits   
     digitalWrite(XaxisDir,BACKWARD);                      // Start by finding the Zero (left) Limit - slowly
     analogWrite(XaxisPWM,128);                            // Apply 1/2 speed to motor (so we don't cause damage when we crash into the limit)
     
     for(int x=0;x++;) {
-      axis[WhichAxis].ppid.pos = xPosn.calcPosn();        // Get current Xaxis position in encoder ticks  
-      deltaPos = abs(cpos-axis[WhichAxis].ppid.pos);      // How far have we travelled?
-      cpos = axis[WhichAxis].ppid.pos;                    // Set current position for next loop
+      axis[whichAxis].ppid.pos = xPosn.calcPosn();        // Get current Xaxis position in encoder ticks  
+      deltaPos = abs(cpos-axis[whichAxis].ppid.pos);      // How far have we travelled?
+      cpos = axis[whichAxis].ppid.pos;                    // Set current position for next loop
       if(deltaPos<2) smooth++;                            // If no change in position, increase smooth counter
       else smooth = 0;                                    // If still travelling, keep smooth reset.
       if(smooth > 10) break;                              // If axis is stalled for more than 10 loops, assume we are at left limit.
     }
     delay(100);
-    endstop[WhichAxis] = axis[WhichAxis].ppid.pos;        // Initialize backstop position
+    endstop[whichAxis] = axis[whichAxis].ppid.pos;        // Initialize backstop position
 
     digitalWrite(XaxisDir,FORWARD);                       // Start by finding the Zero (left) Limit - slowly
     analogWrite(XaxisPWM,256);                            // Apply full speed to motor to figure out maximum velocity and accelleration
@@ -103,14 +103,14 @@ double curVelocity;                                      // Current instantaneou
     timeInterval = micros();
     for(int x=0;x++;) {
 
-      endstop[WhichAxis] = xPosn.calcPosn();              // Get current Xaxis position in encoder ticks  
-      deltaPos = abs(cpos-endstop[WhichAxis]);            // How far have we travelled?
-      cpos = endstop[WhichAxis];                          // Set current position for next loop
+      endstop[whichAxis] = xPosn.calcPosn();              // Get current Xaxis position in encoder ticks  
+      deltaPos = abs(cpos-endstop[whichAxis]);            // How far have we travelled?
+      cpos = endstop[whichAxis];                          // Set current position for next loop
       
       curVelocity = deltaPos/(micros()-timeInterval);     // Current Velocity = change in position over time 
       timeInterval = micros();      
 
-      if(curVelocity > maxAvailVel[WhichAxis]) maxAvailVel[WhichAxis] = curVelocity;    // Set Maximum Available Velocity
+      if(curVelocity > maxAvailVel[whichAxis]) maxAvailVel[whichAxis] = curVelocity;    // Set Maximum Available Velocity
       
       if(deltaPos<2) smooth++;                            // If no change in position, increase smooth counter
       else smooth = 0;                              // If still travelling, keep smooth reset.
