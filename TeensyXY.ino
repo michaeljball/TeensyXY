@@ -100,7 +100,8 @@ int linearStep = 2;                             // How far to travel between ste
 
 int maxPWM = 255;                               // Maximum value for motor PWM
 int maxVel = 1000;                              // Maximum velocity per axis in ticks/s
-int maxAvailVel[] = {1000,1000};                  // Calculated Maximum available Velocity per Axis in ticks/s
+int maxAvailVel[] = {0,0};                      // Calculated Maximum available Velocity per Axis in ticks/s
+double endstop[] = {0,0};                      // Position of the Right Endstop 
 
 struct POSPIDSTRUCT {                         // Position PID structure
   float  Kp;                                  // Proportional Gain
@@ -173,7 +174,7 @@ void readConfig(void);
 void kill(void);
 void line_to(double, double, double, double);
 void gotoXY(double, double);
-
+void findLimits(int);
 
 
 // ================================== Make Magic ================================================================================

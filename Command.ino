@@ -394,17 +394,14 @@ void process_commands()
       }   
       break;     
 
-    case 160: // G170   Find AXIS Limits  -- 
+    case 160: // G160   Find AXIS Limits  -- 
               //        Run full speed into right most limit capture max velocity and position
               //        Run full speed into left most limit capture max velocity and position
-              float current_position[NUM_AXIS];
-              float destination[NUM_AXIS]; 
-    
-        if(code_seen(axis_codes[0])) {                      // Select which Axis to update
-          gotoXY(1000000, current_position[1]);             // Run into X End
-          delay(2); 
-          
-        }                    
+       for(int8_t i=0; i < NUM_AXIS; i++) {
+         if(code_seen(axis_codes[i])) {        // Select which Axis to update
+           findLimits(i);                     // Set bounds for axis i          
+         }   
+       }                 
       break;
 
     case 170: // G170   Reset Encoder Counts to Zero
