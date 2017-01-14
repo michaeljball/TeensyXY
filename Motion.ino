@@ -75,5 +75,6 @@ void kill(void){
 
     axis[0].vpid.spd= 0;
     axis[0].vpid.spd= 0;  
+    
 }
 

@@ -1,5 +1,6 @@
+#include <QuadDecode_def.h>
 #include <QuadDecode.h>
-#include <QuadDecode_Def.h>
+
 
 
 /**********************************************************************************************
@@ -99,6 +100,7 @@ int linearStep = 2;                             // How far to travel between ste
 
 int maxPWM = 255;                               // Maximum value for motor PWM
 int maxVel = 1000;                              // Maximum velocity per axis in ticks/s
+int maxAvailVel[] = {1000,1000};                  // Calculated Maximum available Velocity per Axis in ticks/s
 
 struct POSPIDSTRUCT {                         // Position PID structure
   float  Kp;                                  // Proportional Gain
@@ -134,7 +136,7 @@ struct AXISLOG {                              // Structure to log PID performanc
   double Yvel;                                // Current Y velocity in ticks/second  
 } perflog[1000];
 
-int  logpos = 0;                               // Position in the motion 
+int  logpos = 0;                              // Position in the motion 
 bool logging = false;                         // Not currently logging
 bool motion = false;                          // Not currently moving
 
@@ -217,7 +219,7 @@ void setup() {
 void loop() {          // NOTE:  ONLY WORKING X-AXIS for this sketch
 
   
-    if (doOutput > 500) { doOutput = 0; updateDisplay(); }
+    if (doOutput > 2000) { doOutput = 0; updateDisplay(); }
 
     get_buffer();                       // Look for and parse Serial Data.
 

@@ -182,10 +182,8 @@ const char pid_codes[3]= {'P', 'I', 'D'};
 void get_buffer()                                   // Process serial input to fill command buffer
 {
     if(buflen < (BUFSIZE-1))  get_command();
-   
     if(buflen)
     {
-
         process_commands();
         buflen = (buflen-1);
         bufindr = (bufindr + 1)%BUFSIZE;
@@ -200,11 +198,8 @@ void get_command()
 {
   while( Serial.available() > 0  && buflen < BUFSIZE) {
     serial_char = Serial.read();
- 
-    if(serial_char == '\n' ||
-       serial_char == '\r' ||
-       (serial_char == ':' && comment_mode == false) ||
-       serial_count >= (MAX_CMD_SIZE - 1) )
+//    Serial.write(serial_char);
+    if(serial_char == '\n' ||  serial_char == '\r' || (serial_char == ':' && comment_mode == false) || serial_count >= (MAX_CMD_SIZE - 1) )
     {
       if(!serial_count) {                                               //if empty line
         comment_mode = false;                                           //for new command
@@ -246,13 +241,12 @@ void get_command()
             serial_count = 0;
             return;
           }
-
           gcode_LastN = gcode_N;                                        // Update line number 
           //if no errors, continue parsing
            
         }
         else  // if we don't receive 'N' but still see '*'
-        {
+        {        
           if((strchr(cmdbuffer[bufindw], '*') != NULL))
           {
             Serial.printf("Error: No Line Number on line # %ul\r\n",gcode_LastN);
@@ -269,7 +263,7 @@ void get_command()
           case 2:
           case 3:
             if(Stopped == false) { // If printer is stopped by an error the G[0-3] codes are ignored.
-              Serial.printf("ok\r\n");
+              Serial.printf(" ok\r\n");
             }
             else {
               Serial.printf("Error: STOPPED\r\n");
@@ -280,17 +274,19 @@ void get_command()
           }
 
         }
-
+ 
         if(strcmp(cmdbuffer[bufindw], "M112") == 0)  kill();             //If command was e-stop process now
         
         strcpy(command,cmdbuffer[bufindw]);
+        
         bufindw = (bufindw + 1)%BUFSIZE;        // Current string completed, Point to the next string buffer
         buflen += 1;                            // Increment the number of items in the queue
       }
+      
       serial_count = 0; //clear buffer
     }
     else
-    {
+    {     
       if(serial_char == ';') comment_mode = true;
       if(!comment_mode) cmdbuffer[bufindw][serial_count++] = serial_char;   // Add current character to the string
     }
@@ -337,6 +333,8 @@ void process_commands()
 {
  unsigned long codenum; //throw away variable
  char *starpos = NULL;
+ 
+
 
   if(code_seen('G'))
   {
@@ -353,6 +351,7 @@ void process_commands()
       }
       break; 
     case 28: // G28       Home all axis
+      Serial.printf("Homing All AXIS\r\n");  
             axis[0].ppid.tpos = 0;
             axis[1].ppid.tpos = 0;  
       break;
@@ -371,29 +370,42 @@ void process_commands()
         }
       }   
     break;     
-      
-    case 150: // G150   Co-Opting to Set Position PID  P
+     
+    case 150: // G150   Co-Opting to Set Position PID
       for(int8_t i=0; i < NUM_AXIS; i++) {
         if(code_seen(axis_codes[i])) {        // Select which Axis to update
           if (code_seen('P')) axis[i].ppid.Kp = code_value();
           if (code_seen('I')) axis[i].ppid.Ki = code_value();
           if (code_seen('D')) axis[i].ppid.Kd = code_value();
-          Serial.printf("Axis %d PKp %f PKp %f PKp %f \r\n", i, axis[i].ppid.Kp,axis[i].ppid.Ki,axis[i].ppid.Kd);          
+          Serial.printf("Axis %d PKp %f PKi %f PKd %f \r\n", i, axis[i].ppid.Kp,axis[i].ppid.Ki,axis[i].ppid.Kd);          
         }  
       }   
       break;     
       
 
-    case 160: // G150   Co-Opting to Set Position PID  P
+    case 151: // G151   Co-Opting to Set Velocity PID
       for(int8_t i=0; i < NUM_AXIS; i++) {
         if(code_seen(axis_codes[i])) {        // Select which Axis to update
           if (code_seen('P')) axis[i].vpid.Kp = code_value();
           if (code_seen('I')) axis[i].vpid.Ki = code_value();
           if (code_seen('D')) axis[i].vpid.Kd = code_value();
-          Serial.printf("Axis %d PKp %f PKp %f PKp %f \r\n", i, axis[i].ppid.Kp,axis[i].ppid.Ki,axis[i].ppid.Kd);          
+          Serial.printf("Axis %d VKp %f VKi %f VKd %f \r\n", i, axis[i].vpid.Kp,axis[i].vpid.Ki,axis[i].vpid.Kd);          
         }  
       }   
       break;     
+
+    case 160: // G170   Find AXIS Limits  -- 
+              //        Run full speed into right most limit capture max velocity and position
+              //        Run full speed into left most limit capture max velocity and position
+              float current_position[NUM_AXIS];
+              float destination[NUM_AXIS]; 
+    
+        if(code_seen(axis_codes[0])) {                      // Select which Axis to update
+          gotoXY(1000000, current_position[1]);             // Run into X End
+          delay(2); 
+          
+        }                    
+      break;
 
     case 170: // G170   Reset Encoder Counts to Zero
       xPosn.zeroFTM(); yPosn.zeroFTM();                 // Start Quad Decode position count   
@@ -411,11 +423,12 @@ void process_commands()
         switch( (int)code_value() )
         {
           case 112: //  M112 -Emergency Stop
+            Serial.printf("M112 Emergency Stop\r\n");
             kill();
           break;
           
           case 105 : // M105
-                Serial.printf("Not supported");
+                Serial.printf("M105 Currently Not supported\r\n");
            break;
           case 115: // M115
                 Serial.printf("FIRMWARE_NAME: TeensyXY V1; DC ServoMotor CTRL  ");
