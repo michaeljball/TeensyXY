@@ -62,8 +62,8 @@ void st_set_e_position(const long &e)
 long st_get_position(uint8_t axis)
 {
   long count_pos;
-  if(axis = X_AXIS) count_pos = xPosn.calcPosn();        // Get current Xaxis position in encoder ticks
-  else if(axis = Y_AXIS) count_pos = yPosn.calcPosn();        // Get current Xaxis position in encoder ticks  return count_pos;
+  if(axis == X_AXIS) count_pos = xPosn.calcPosn();        // Get current Xaxis position in encoder ticks
+  else if(axis == Y_AXIS) count_pos = yPosn.calcPosn();        // Get current Xaxis position in encoder ticks  return count_pos;
 }
 
 

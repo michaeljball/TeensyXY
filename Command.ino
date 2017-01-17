@@ -162,12 +162,15 @@ static bool relative_mode = false;
 static long  previous_millis_cmd;
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y
-const bool AXIS_RELATIVE_MODES[NUM_AXIS]= {false, false, false, false};
+#define AXIS_RELATIVE_MODES {false, false, false, false}
+
+const bool axis_relative_modes[] = AXIS_RELATIVE_MODES;
 const char axis_codes[NUM_AXIS]= {'X', 'Y', 'Z', 'E'};
 enum AxisEnum {X_AXIS=0, Y_AXIS=1,Z_AXIS=2, E_AXIS=3};
 
-float current_position[NUM_AXIS];
-float destination[NUM_AXIS];
+// Planner positions
+float current_position[NUM_AXIS] =  { 0.0, 0.0, 0.0, 0.0 };
+float destination[NUM_AXIS] =       { 0.0, 0.0, 0.0, 0.0 };
 
 const char pid_codes[3]= {'P', 'I', 'D'};
 
@@ -453,19 +456,5 @@ void process_commands()
 }      
 
 
-
-void get_coordinates()          //  Parse String for Integer number associated with an Axis
-{
-    bool seen[2]= {false,false};
-    for(int8_t i=0; i < NUM_AXIS; i++) {
-        if(code_seen(axis_codes[i])) {
-            axis[i].ppid.tpos = (float)code_value() + (AXIS_RELATIVE_MODES[i] || relative_mode)*axis[i].ppid.pos;
-            seen[i]=true;
-            logging = true;
-            Serial.printf("Destination %u = %f  \r\n", i, axis[i].ppid.tpos);             // ******************************************* DEBUG  ***************************8
-        } 
-    }
-
-}
 
 

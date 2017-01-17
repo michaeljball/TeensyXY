@@ -58,13 +58,19 @@
 #define MINIMUM_PLANNER_SPEED 0.05// (mm/sec)
 #define dropsegments 2                            // Minimum number of allowed segments in ring
 
+// Arc interpretation settings:
+#define MM_PER_ARC_SEGMENT 1
+#define N_ARC_CORRECTION 25
+
 //  millis_t minsegmenttime;
 float max_feedrate[NUM_AXIS]; // Max speeds in mm per minute
 #define DEFAULT_MAX_FEEDRATE          {130, 130, 1.7, 20}    // (mm/sec)
 
 float axis_steps_per_unit[NUM_AXIS];
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556, 35.556, 800.00, 368.421}  // default steps per unit 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100, 100, 100, 100}  // default steps per unit 
+//#define DEFAULT_AXIS_STEPS_PER_UNIT   {35.556, 35.556, 800.00, 368.421}   // default steps per unit 
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100, 100, 100, 100}                  // default steps per unit 
+
+
 
 unsigned long max_acceleration_units_per_sq_second[NUM_AXIS]; // Use M201 to override by software
 float minimumfeedrate;
@@ -180,7 +186,7 @@ void plan_init();
 
 // Add a new linear movement to the buffer. x, y and z is the signed, absolute target position in
 // millimaters. Feed rate specifies the speed of the motion.
-void plan_buffer_line(const float &x, const float &y, const float &z, const float &e, float feed_rate, const uint8_t &extruder);
+void plan_buffer_line(const float &, const float &, const float &, const float &, float, const uint8_t &);
 
 // Set position. Used for G92 instructions.
 void plan_set_position(const float &x, const float &y, const float &z, const float &e);
@@ -498,7 +504,7 @@ float junction_deviation = 0.1;
 // mm. Microseconds specify how many microseconds the move should take to perform. To aid acceleration
 // calculation the caller must also provide the physical length of the line in millimeters.
 
-void plan_buffer_line(const float& x, const float& y, const float& z, const float& e, float feed_rate, const uint8_t extruder)
+void plan_buffer_line(const float& x, const float& y, const float& z, const float& e, float feed_rate, const uint8_t& extruder)
 {
     // Calculate the buffer head after we push this byte
     int next_buffer_head = next_block_index(block_buffer_head);
@@ -544,7 +550,7 @@ void plan_buffer_line(const float& x, const float& y, const float& z, const floa
 //    block->step_event_count = max(block->steps[X_AXIS], block->steps[Y_AXIS]);
 
 printf("Currently in plan_buffer_line\r\n");
-printf("Block X/Y/Z/E Event-Count %d %d %d %d %d\r\n", block->steps[X_AXIS],target[Y_AXIS],block->steps[Z_AXIS],block->steps[E_AXIS],block->step_event_count);
+printf("Block X/Y/Z/E Event-Count %ld %ld %ld %ld %ld\r\n", block->steps[X_AXIS],target[Y_AXIS],block->steps[Z_AXIS],block->steps[E_AXIS],block->step_event_count);
     // Bail if this is a zero-length block
     if (block->step_event_count <= dropsegments) return;
 
@@ -574,10 +580,10 @@ printf("Block X/Y/Z/E Event-Count %d %d %d %d %d\r\n", block->steps[X_AXIS],targ
         g_uc_extruder_last_move[0] = BLOCK_BUFFER_SIZE * 2;
     }
 
-    if (block->steps[E_AXIS])
+    if (block->steps[E_AXIS]) {
         if(feed_rate < minimumfeedrate) feed_rate = minimumfeedrate;
         else if(feed_rate < mintravelfeedrate) feed_rate = mintravelfeedrate;
-        
+    }    
 printf("feed_rate = %f\r\n",feed_rate);        
 
     /**
@@ -613,7 +619,7 @@ printf("block->millimeters = %f, inverse_millimeters = %f, inverse_second= %f  \
 
     block->nominal_speed = block->millimeters * inverse_second; // (mm/sec) Always > 0
     block->nominal_rate = ceil(block->step_event_count * inverse_second); // (step/sec) Always > 0
-printf("block->nominal_speed = %f, block->nominal_rate= %d, moves_queued = %d  \r\n", block->nominal_speed, block->nominal_rate, moves_queued);
+printf("block->nominal_speed = %f, block->nominal_rate= %ld, moves_queued = l%d  \r\n", block->nominal_speed, block->nominal_rate, moves_queued);
 
     // Calculate and limit speed in mm/sec for each axis
     float current_speed[NUM_AXIS];
@@ -632,7 +638,7 @@ printf("block->nominal_speed = %f, block->nominal_rate= %d, moves_queued = %d  \
         block->nominal_rate *= speed_factor;
     }
 printf("After Speed Correction:\r\n");
-printf("block->nominal_speed = %f, block->nominal_rate= %d, moves_queued = %d  \r\n", block->nominal_speed, block->nominal_rate, moves_queued);
+printf("block->nominal_speed = %f, block->nominal_rate= %ld, moves_queued = %ld  \r\n", block->nominal_speed, block->nominal_rate, moves_queued);
 
     // Compute and limit the acceleration rate for the trapezoid generator.
     float steps_per_mm = block->step_event_count / block->millimeters;
