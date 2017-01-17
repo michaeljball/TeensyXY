@@ -25,5 +25,29 @@ Dual axis ServoMotor code for Teensy 3.x
 * and validating that this was a project worth doing.  Check out Miguel's Arduino DCServo work
 * https://github.com/misan
 * 
+*
+* Supports the typical Gcodes G0-G1, G28, G90, G91
+*
+* Using G150 for configuring Axis Position PID 
+*     usage:  G150 X P10   or G150 Y P10 I2 D0.2
+*
+* Using G151 for configuring Axis Velocity PID 
+*     usage:  G151 X P10   or G151 Y P10 I2 D0.2
+*
+* Using G160 to identify Axis limits (Left/right endstop positions, MAX Velocity/Accelleration)
+* These limits will be populated into the EEPROM per axis.
+*     usage: G160 X   --- Update X axis limits.
+*
+* Using G170 to reset current Axis position counter to Zero
+*     usage G170 X    --- The current position of X becomes the new left endstop
+*
+* Using G180 to dump the most recent performance log to serial
+*     usage G180      --- Most recent motion curve parameters will be dumped to serial for 
+*                     --- Analysis.
+*
+* M500 to write config to EEPROM
+* M501 to read config from EEPROM
+*
 ************************************************************************************************/
+
 

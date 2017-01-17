@@ -408,8 +408,8 @@ void process_commands()
       break;
 
     case 170: // G170   Reset Encoder Counts to Zero
-      xPosn.zeroFTM(); yPosn.zeroFTM();                 // Start Quad Decode position count   
-      Serial.printf("X/Y Axis bot reset to Zero\r\n");                     
+        if(code_seen(axis_codes[0])) xPosn.zeroFTM();                 // Reset X Axis Quad Decode position count  
+        if(code_seen(axis_codes[1])) yPosn.zeroFTM();                 // Reset Y Axis Quad Decode position count                        
       break;
 
     case 180: // G180   Dump Performance log to serial
