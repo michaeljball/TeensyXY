@@ -161,10 +161,10 @@ static bool Stopped = false;
 static bool relative_mode = false;
 static long  previous_millis_cmd;
 
-#define NUM_AXIS 2 // The axis order in all axis related arrays is X, Y
-const bool AXIS_RELATIVE_MODES[2]= {false, false};
-const char axis_codes[NUM_AXIS]= {'X', 'Y'};
-enum AxisEnum {X_AXIS=0, Y_AXIS=1};
+#define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y
+const bool AXIS_RELATIVE_MODES[NUM_AXIS]= {false, false, false, false};
+const char axis_codes[NUM_AXIS]= {'X', 'Y', 'Z', 'E'};
+enum AxisEnum {X_AXIS=0, Y_AXIS=1,Z_AXIS=2, E_AXIS=3};
 
 float current_position[NUM_AXIS];
 float destination[NUM_AXIS];

@@ -25,10 +25,48 @@
 ************************************************************************************************/
 
 
-void prepare_move(void) {
+// Block until all buffered steps are executed
+void st_synchronize();
 
-  
+// Set current position in steps
+void st_set_position(const long &x, const long &y, const long &z, const long &e);
+void st_set_e_position(const long &e);
+
+// Get current position in steps
+long st_get_position(uint8_t axis);
+
+
+// Block until all buffered steps are executed
+void st_synchronize()
+{
+  while( blocks_queued()) {
+//  Not necessary, as all non-motion events are managed via threads... 
+  }
 }
+
+void st_set_position(const long &x, const long &y, const long &z, const long &e)
+{
+
+  axis[X_AXIS].ppid.tpos = x;
+  axis[Y_AXIS].ppid.tpos = y;
+  axis[Z_AXIS].ppid.tpos = z;
+  axis[E_AXIS].ppid.tpos = e;
+
+}
+
+void st_set_e_position(const long &e)
+{
+   axis[E_AXIS].ppid.tpos = e;
+}
+
+long st_get_position(uint8_t axis)
+{
+  long count_pos;
+  if(axis = X_AXIS) count_pos = xPosn.calcPosn();        // Get current Xaxis position in encoder ticks
+  else if(axis = Y_AXIS) count_pos = yPosn.calcPosn();        // Get current Xaxis position in encoder ticks  return count_pos;
+}
+
+
 
 void line_to(double start_x, double start_y, double end_x, double end_y) {
 
@@ -113,8 +151,8 @@ double curVelocity;                                      // Current instantaneou
       if(curVelocity > maxAvailVel[whichAxis]) maxAvailVel[whichAxis] = curVelocity;    // Set Maximum Available Velocity
       
       if(deltaPos<2) smooth++;                            // If no change in position, increase smooth counter
-      else smooth = 0;                              // If still travelling, keep smooth reset.
-      if(smooth > 10) break;                        // If axis is stalled for more than 10 loops, assume we are at left limit.
+      else smooth = 0;                                    // If still travelling, keep smooth reset.
+      if(smooth > 10) break;                              // If axis is stalled for more than 10 loops, assume we are at left limit.
     }          
     
 }
@@ -125,4 +163,5 @@ void kill(void){
     axis[0].vpid.spd= 0;  
     
 }
+
 
