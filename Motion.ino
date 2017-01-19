@@ -120,10 +120,14 @@ double timeInterval;                                     // Time interval for ca
 double curVelocity;                                      // Current instantaneous velocity
 
     axis[whichAxis].ppid.pos = 0;                         // Set current position artificially to Zero.
-                                                          // Set up X axis limits   
-    digitalWrite(XaxisDir,BACKWARD);                      // Start by finding the Zero (left) Limit - slowly
-    analogWrite(XaxisPWM,128);                            // Apply 1/2 speed to motor (so we don't cause damage when we crash into the limit)
-    
+                                                           
+    if(whichAxis ==0) {
+      digitalWrite(XaxisDir,BACKWARD);                      // Start by finding the Zero (left) Limit - slowly
+      analogWrite(XaxisPWM,128);                            // Apply 1/2 speed to motor (so we don't cause damage when we crash into the limit)
+    } else {
+      digitalWrite(YaxisDir,BACKWARD);                      // Start by finding the Zero (left) Limit - slowly
+      analogWrite(YaxisPWM,128);                            // Apply 1/2 speed to motor (so we don't cause damage when we crash into the limit)
+    }
     for(int x=0;x++;) {
       axis[whichAxis].ppid.pos = xPosn.calcPosn();        // Get current Xaxis position in encoder ticks  
       deltaPos = abs(cpos-axis[whichAxis].ppid.pos);      // How far have we travelled?
@@ -133,11 +137,19 @@ double curVelocity;                                      // Current instantaneou
       if(smooth > 10) break;                              // If axis is stalled for more than 10 loops, assume we are at left limit.
     }
     delay(100);
+
+    axis[whichAxis].ppid.pos = 0;                         // Set current position truly to Zero.
     endstop[whichAxis] = axis[whichAxis].ppid.pos;        // Initialize backstop position
-
-    digitalWrite(XaxisDir,FORWARD);                       // Start by finding the Zero (left) Limit - slowly
-    analogWrite(XaxisPWM,256);                            // Apply full speed to motor to figure out maximum velocity and accelleration
-
+        
+    if(whichAxis ==0) {
+      xPosn.zeroFTM();                                     // Reset the Encoder counter to Zero.  We are at the left endstop
+      digitalWrite(XaxisDir,FORWARD);                      // Now prepare to move across the axis to the right
+      analogWrite(XaxisPWM,256);                            // Apply 1/2 speed to motor (so we don't cause damage when we crash into the limit)
+    } else {
+      yPosn.zeroFTM();                                     // Reset the Encoder counter to Zero.  We are at the left endstop
+      digitalWrite(YaxisDir,FORWARD);                      // Now prepare to move across the axis to the right
+      analogWrite(YaxisPWM,256);                            // Apply full speed to motor 
+    }
     timeInterval = micros();
     for(int x=0;x++;) {
 
